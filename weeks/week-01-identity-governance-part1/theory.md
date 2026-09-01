@@ -42,6 +42,22 @@ If you know AWS IAM, the closest mapping is: Entra ID ~ the identity provider, A
 
 **Exam trap:** guest users are a *directory* concept (who can sign in), separate from RBAC role assignment (what they can do once signed in). An invited guest with no role assignment can sign in but sees nothing.
 
+### Controlling who can be invited (external collaboration settings)
+
+Under **Entra ID > External Identities > External collaboration settings**:
+
+| Setting | Controls |
+|---|---|
+| Guest invite restrictions | Who inside your org is allowed to send invitations - Everyone, Members and users with the Guest Inviter role, only admins, or no one |
+| Guest user access restrictions | What a guest can see in your directory once signed in - same access as members (default), limited access, or no access to directory objects other than their own profile |
+| Collaboration restrictions | An **allow list** or **deny list** of specific domains that can/cannot be invited as guests - mutually exclusive, you pick one mode |
+
+**Exam trap:** allow list and deny list are mutually exclusive settings, not layered - configuring one disables the other. A scenario that says "block guests from `contoso.com` but allow everyone else" wants a deny list, not an allow list with everything else added.
+
+### MFA for guests
+
+Guests authenticate against their *home* tenant, but you can still require MFA for them when accessing *your* resources via **Conditional Access** policies scoped to guest/external users - this is the mechanism, though full Conditional Access policy design is AZ-500 territory, not AZ-104. What AZ-104 expects you to know is that per-guest MFA enforcement is possible and lives in Conditional Access, not in the guest invitation flow itself.
+
 ---
 
 ## 3. Groups
@@ -92,7 +108,21 @@ This is the single most tested conceptual trap in the identity domain.
 
 ---
 
-## 5. Azure RBAC fundamentals
+## 5. Administrative units
+
+An **administrative unit (AU)** is a container that lets you scope an Entra role to a *subset* of the directory instead of the whole tenant.
+
+- An AU can contain users, groups, and (with restricted management AUs) devices.
+- You assign an Entra role (e.g. **User Administrator**, **Helpdesk Administrator**, **Groups Administrator**) *scoped to the AU*, instead of scoped to the whole tenant.
+- Typical use case: a large org with regional IT teams - a "APAC Admins" AU containing only APAC users lets a regional helpdesk admin reset passwords and manage licences for their region only, with zero visibility or access to users in other regions.
+- Membership can be assigned manually or, like groups, **dynamically** via a rule (requires Entra ID P1).
+- Configured under **Entra ID > Roles and administrators > Administrative units**.
+
+**Exam trap:** administrative units scope **Entra roles** (directory administration), not **Azure RBAC**. They do not touch subscriptions, resource groups, or Azure resources at all - do not confuse an AU with a management group, which is the equivalent-sounding concept on the Azure RBAC side (section 4 above has the full RBAC scope hierarchy). If a scenario asks how to let a regional admin manage *Azure resources* only for their region, the answer is RBAC scoped to a resource group, not an administrative unit.
+
+---
+
+## 6. Azure RBAC fundamentals
 
 ### The three parts of a role assignment
 
@@ -131,7 +161,7 @@ The IAM blade has a **"Check access"** feature: pick a user/group/service princi
 
 ---
 
-## 6. Self-service password reset (SSPR)
+## 7. Self-service password reset (SSPR)
 
 SSPR lets users reset their own password without calling IT, using pre-registered authentication methods (phone, email, authenticator app, security questions).
 
@@ -145,11 +175,13 @@ SSPR lets users reset their own password without calling IT, using pre-registere
 
 ---
 
-## 7. What to be able to do from memory before moving to labs
+## 8. What to be able to do from memory before moving to labs
 
 - Explain the difference between a cloud-only user, a synced user, and a guest user.
 - Explain assigned vs dynamic group membership, and state the licence requirement for dynamic.
 - State, without hesitating, that Azure RBAC and Entra roles are separate systems.
+- Explain what an administrative unit scopes (Entra roles) versus what a management group scopes (Azure RBAC) - and that they are not the same thing despite the similar name.
 - Name the four Azure RBAC scope levels in order and explain that permissions inherit downward.
 - Explain the difference between Owner and Contributor in one sentence.
 - Explain what SSPR does and where it is configured.
+- State the difference between allow-list and deny-list guest collaboration restrictions.

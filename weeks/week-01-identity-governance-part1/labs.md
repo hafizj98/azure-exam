@@ -107,10 +107,13 @@ az ad group create --display-name "sg-assigned-test" --mail-nickname "sgassigned
 5. Accept the invitation from the invited mailbox if you have access to it, and observe what consent screen the guest sees on first sign-in.
 6. Go to **Entra ID > External Identities > External collaboration settings** and review: guest invite restrictions, guest user access restrictions (what a guest can see in the directory by default).
 7. **Do not** assign the guest any role yet - confirm (conceptually, or by trying to sign in as them) that an invited guest with no RBAC/app assignment has no access to any resource, only a directory presence.
+8. Still in **External collaboration settings**, scroll to **Collaboration restrictions**. Switch it to **Deny list** and add a throwaway domain (e.g. `blocked-example.com`). Confirm the mode switch disables the allow-list fields - this is the mutually-exclusive behaviour worth seeing once, not just reading about.
+9. Switch it back to **Allow all domains** (or your original setting) when done, so you don't accidentally lock yourself out of future invites.
 
 **Notes:**
 - [ ] What does the guest's UPN look like? _______________
 - [ ] What's restricted by default under "Guest user access restrictions"? _______________
+- [ ] What happened to the allow-list fields when you switched to deny-list mode? _______________
 
 ---
 
@@ -146,12 +149,32 @@ az role assignment list --assignee <bob-object-id> --all -o table
 
 ---
 
+## Lab 7: Administrative units
+
+**Goal:** scope an Entra role to a subset of users, and see how this is a completely different mechanism from Azure RBAC/management groups.
+
+1. **Entra ID > Roles and administrators > Administrative units > Add**.
+2. Name it `au-test-region`.
+3. Add `alice-test` as a member of the AU (Members tab).
+4. Go to the AU's **Roles and administrators** tab > **Add assignments**.
+5. Assign `bob-test` the **Helpdesk Administrator** role, scoped to this administrative unit only (not tenant-wide).
+6. Confirm the assignment: go to `bob-test`'s user profile > **Assigned roles** - it should show Helpdesk Administrator with the AU listed as the scope, not "Directory".
+7. Conceptually confirm: `bob-test` can now reset `alice-test`'s password (she's in the AU) but has no such rights over any user outside `au-test-region` - unlike a tenant-wide Helpdesk Administrator assignment, which would cover everyone.
+
+**Notes:**
+- [ ] Where in the UI does an AU-scoped role assignment show as different from a tenant-wide one? _______________
+- [ ] In one sentence: how is this different from assigning an Azure RBAC role at a management group? _______________
+
+---
+
 ## Wrap-up checklist
 
 - [ ] Lab 1: users created, password reset and block sign-in tested
 - [ ] Lab 2: assigned group and dynamic group both created, dynamic rule confirmed working
 - [ ] Lab 3: license assignment flow understood (assigned or documented as unavailable)
 - [ ] Lab 4: SSPR scoped, auth methods reviewed
-- [ ] Lab 5: guest invited, UPN format observed, external collaboration settings reviewed
+- [ ] Lab 5: guest invited, UPN format observed, external collaboration settings and allow/deny list behaviour reviewed
 - [ ] Lab 6: roles assigned at 3 scopes, Check Access read correctly at two different resource groups
+- [ ] Lab 7: administrative unit created, role scoped to it, scope confirmed on the assignment
 - [ ] Can you explain, without looking, why Owner on a subscription is not the same as Global Administrator?
+- [ ] Can you explain, without looking, why an administrative unit is not the same as a management group?
